@@ -1,0 +1,57 @@
+@startuml task1_singleton
+title Завдання 1. Курси валют (Singleton)
+skinparam classAttributeIconSize 0
+
+class ExchangeRateService <<Singleton>> {
+  - id : String
+  - rates : Map<String, ExchangeRate>
+  - ExchangeRateService()
+  + {static} getInstance() : ExchangeRateService
+  + getId() : String
+  + setRate(currency : String, buy : double, sell : double) : void
+  + getRate(currency : String) : ExchangeRate
+}
+
+class "ExchangeRateService.Holder" as Holder <<Holder>> {
+  - {static} INSTANCE : ExchangeRateService
+}
+
+class ExchangeRate <<Value>> {
+  - currency : String
+  - buy : double
+  - sell : double
+  - setAt : LocalTime
+  + toString() : String
+}
+
+class Treasury <<Client>> {
+  - service : ExchangeRateService
+  + setRate(currency : String, buy : double, sell : double) : void
+  + getServiceId() : String
+}
+
+class Branch <<Client>> {
+  - name : String
+  - service : ExchangeRateService
+  + showRate(currency : String) : void
+  + getServiceId() : String
+}
+
+class OnlineBanking <<Client>> {
+  - service : ExchangeRateService
+  + showRate(currency : String) : void
+  + getServiceId() : String
+}
+
+Holder --> "1" ExchangeRateService : створює єдиний екземпляр
+ExchangeRateService "1" *-- "0..*" ExchangeRate : rates
+Treasury ..> ExchangeRateService : getInstance()
+Branch ..> ExchangeRateService : getInstance()
+OnlineBanking ..> ExchangeRateService : getInstance()
+
+note right of ExchangeRateService
+  Роль: Singleton.
+  Приватний конструктор, один екземпляр
+  на весь банк.
+end note
+@enduml

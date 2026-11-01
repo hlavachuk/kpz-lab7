@@ -1,0 +1,53 @@
+@startuml task3_prototype
+title Завдання 3. Оформлення договорів (Prototype)
+skinparam classAttributeIconSize 0
+
+interface Prototype<T> <<Prototype>> {
+  + copy() : T
+}
+
+class Contract <<Concrete Prototype>> {
+  - {static} UA : Locale
+  - product : String
+  - clientName : String
+  - rate : double
+  - termMonths : int
+  - amount : long
+  - earlyTerminationTerms : String
+  - schedule : List<PaymentScheduleItem>
+  - addenda : List<String>
+  + Contract(product : String, rate : double, termMonths : int, amount : long, earlyTerminationTerms : String)
+  - Contract(source : Contract)
+  + copy() : Contract
+  + setClientName(clientName : String) : void
+  + setAmount(amount : long) : void
+  + addAddendum(text : String) : void
+  + changePayout(month : int, payout : double) : void
+  + describe() : List<String>
+}
+
+class PaymentScheduleItem {
+  - month : int
+  - payout : double
+  + PaymentScheduleItem(month : int, payout : double)
+  + PaymentScheduleItem(source : PaymentScheduleItem)
+  + getMonth() : int
+  + getPayout() : double
+  + setPayout(payout : double) : void
+}
+
+class Main <<Client>> {
+  {static} task3() : void
+}
+
+Prototype <|.. Contract
+Contract "1" *-- "0..*" PaymentScheduleItem : schedule (глибока копія)
+Main ..> Contract : створює еталон і викликає copy()
+
+note right of Contract
+  Роль: Prototype.
+  copy() викликає конструктор копіювання:
+  графік копіюється поелементно,
+  додаткові угоди — у новий список.
+end note
+@enduml

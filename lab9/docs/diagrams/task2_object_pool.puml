@@ -1,0 +1,61 @@
+@startuml task2_object_pool
+title Завдання 2. З'єднання з платіжною системою (Object Pool)
+skinparam classAttributeIconSize 0
+
+class ConnectionPool <<Object Pool>> {
+  - maxSize : int
+  - all : List<PaymentConnection>
+  - free : Deque<PaymentConnection>
+  + ConnectionPool(maxSize : int)
+  + acquire() : PaymentConnection
+  + release(connection : PaymentConnection) : void
+  + getCreatedCount() : int
+  + getAll() : List<PaymentConnection>
+}
+
+class PaymentConnection <<Pooled Object>> {
+  - id : String
+  - sessionId : String
+  - currentPayment : Payment
+  - paymentsCount : int
+  ~ PaymentConnection(number : int)
+  + getId() : String
+  + getSessionId() : String
+  + getCurrentPayment() : Payment
+  + getPaymentsCount() : int
+  ~ bind(payment : Payment) : void
+  ~ reset() : void
+}
+
+class PaymentService <<Client>> {
+  - {static} NAME : String
+  - pool : ConnectionPool
+  - queue : Queue<Payment>
+  - active : Map<Integer, PaymentConnection>
+  + PaymentService(pool : ConnectionPool)
+  + submit(payment : Payment) : void
+  + complete(paymentNumber : int) : void
+  - start(payment : Payment, connection : PaymentConnection) : void
+}
+
+class Payment {
+  - number : int
+  - amount : long
+  - fromAccount : String
+  - toAccount : String
+}
+
+ConnectionPool "1" *-- "0..4" PaymentConnection : створює й володіє
+PaymentService "1" o-- "1" ConnectionPool : pool
+PaymentService "1" o-- "0..*" Payment : queue (очікують)
+PaymentService ..> PaymentConnection : active
+PaymentConnection "1" --> "0..1" Payment : currentPayment
+
+note right of ConnectionPool
+  Роль: Object Pool.
+  Не більше 4 з'єднань; повернуте
+  з'єднання очищається (reset)
+  і видається повторно.
+  Черга FIFO — у PaymentService.
+end note
+@enduml
